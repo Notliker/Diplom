@@ -1,0 +1,341 @@
+home/kira/.local/lib/python3.10/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+--- stderr: gesture_control                   
+/home/kira/.local/lib/python3.10/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+---
+Finished <<< gesture_control [0.51s]
+
+Summary: 1 package finished [0.57s]
+  1 package had stderr output: gesture_control
+[INFO] [launch]: All log files can be found below /home/kira/.ros/log/2025-04-23-00-51-07-753068-kira-MS-7E06-47971
+[INFO] [launch]: Default logging verbosity is set to INFO
+[WARNING] [launch_ros.actions.node]: Parameter file path is not a file: /home/kira/ros2_ws/install/gesture_control/share/gesture_control/params/mavros_params.yaml
+[INFO] [usb_cam_node_exe-1]: process started with pid [47972]
+[INFO] [mavros_node-2]: process started with pid [47974]
+[INFO] [gesture_node-3]: process started with pid [47976]
+[INFO] [visualizer-4]: process started with pid [47978]
+[mavros_node-2] [INFO] [1745358667.791001660] [mavros_node]: Starting mavros_node container
+[mavros_node-2] [INFO] [1745358667.791044148] [mavros_node]: FCU URL: 
+[mavros_node-2] [INFO] [1745358667.791047437] [mavros_node]: GCS URL: 
+[mavros_node-2] [INFO] [1745358667.791049243] [mavros_node]: UAS Prefix: /uas1
+[mavros_node-2] [INFO] [1745358667.791051099] [mavros_node]: Starting mavros router node
+[mavros_node-2] [WARN] [1745358667.791061011] [rcl.logging_rosout]: Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[mavros_node-2] [INFO] [1745358667.792551853] [mavros_node]: Built-in SIMD instructions: SSE, SSE2
+[mavros_node-2] [INFO] [1745358667.792560884] [mavros_node]: Built-in MAVLink package version: 2024.10.10
+[mavros_node-2] [INFO] [1745358667.792565878] [mavros_node]: Known MAVLink dialects: common ardupilotmega ASLUAV AVSSUAS all csAirLink cubepilot development icarous matrixpilot paparazzi standard storm32 uAvionix ualberta
+[mavros_node-2] [INFO] [1745358667.792568244] [mavros_node]: MAVROS Router started
+[mavros_node-2] [INFO] [1745358667.792577255] [mavros_node]: Requested to add endpoint: type: 2, url: /uas1
+[mavros_node-2] [INFO] [1745358667.792584391] [mavros_node]: Endpoint link[1000] created
+[mavros_node-2] [INFO] [1745358667.793246417] [mavros_node]: link[1000] opened successfully
+[mavros_node-2] [INFO] [1745358667.793263614] [mavros_node]: Starting mavros uas node
+[mavros_node-2] [WARN] [1745358667.793277546] [rcl.logging_rosout]: Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[visualizer-4] /opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/qos.py:307: UserWarning: ReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT is deprecated. Use ReliabilityPolicy.BEST_EFFORT instead.
+[visualizer-4]   warnings.warn(
+[visualizer-4] /opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/qos.py:307: UserWarning: HistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST is deprecated. Use HistoryPolicy.KEEP_LAST instead.
+[visualizer-4]   warnings.warn(
+[mavros_node-2] [INFO] [1745358668.139638227] [mavros_node]: UAS Executor started, threads: 16
+[mavros_node-2] [INFO] [1745358668.145096046] [mavros_node]: Plugin actuator_control created
+[mavros_node-2] [INFO] [1745358668.145117123] [mavros_node]: Plugin actuator_control initialized
+[mavros_node-2] [WARN] [1745358668.145149745] [rcl.logging_rosout]: Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[mavros_node-2] [INFO] [1745358668.146292261] [mavros_node]: Plugin altitude created
+[mavros_node-2] [INFO] [1745358668.146305873] [mavros_node]: Plugin altitude initialized
+[mavros_node-2] [WARN] [1745358668.146339084] [rcl.logging_rosout]: Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[mavros_node-2] [INFO] [1745358668.148463540] [mavros_node]: Plugin command created
+[mavros_node-2] [INFO] [1745358668.148478017] [mavros_node]: Plugin command initialized
+[mavros_node-2] [WARN] [1745358668.148517713] [rcl.logging_rosout]: Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[mavros_node-2] [INFO] [1745358668.150940935] [mavros_node]: Plugin ftp created
+[mavros_node-2] [INFO] [1745358668.150956512] [mavros_node]: Plugin ftp initialized
+[mavros_node-2] [WARN] [1745358668.150989868] [rcl.logging_rosout]: Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[mavros_node-2] [INFO] [1745358668.152798610] [mavros_node]: Plugin geofence created
+[mavros_node-2] [INFO] [1745358668.152817680] [mavros_node]: Plugin geofence initialized
+[mavros_node-2] [WARN] [1745358668.152850656] [rcl.logging_rosout]: Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[mavros_node-2] [INFO] [1745358668.156098225] [mavros_node]: Plugin global_position created
+[mavros_node-2] [INFO] [1745358668.156123343] [mavros_node]: Plugin global_position initialized
+[mavros_node-2] [WARN] [1745358668.156160190] [rcl.logging_rosout]: Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[mavros_node-2] [INFO] [1745358668.158059124] [mavros_node]: Plugin home_position created
+[mavros_node-2] [INFO] [1745358668.158076936] [mavros_node]: Plugin home_position initialized
+[mavros_node-2] [WARN] [1745358668.158112977] [rcl.logging_rosout]: Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[mavros_node-2] [INFO] [1745358668.160299518] [mavros_node]: Plugin imu created
+[mavros_node-2] [INFO] [1745358668.160319158] [mavros_node]: Plugin imu initialized
+[mavros_node-2] [WARN] [1745358668.160352808] [rcl.logging_rosout]: Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[mavros_node-2] [INFO] [1745358668.162752527] [mavros_node]: Plugin local_position created
+[mavros_node-2] [INFO] [1745358668.162774102] [mavros_node]: Plugin local_position initialized
+[mavros_node-2] [WARN] [1745358668.162817620] [rcl.logging_rosout]: Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[usb_cam_node_exe-1] [INFO] [1745358668.164796630] [usb_cam]: camera_name value: camera
+[usb_cam_node_exe-1] [WARN] [1745358668.164865475] [usb_cam]: framerate: 15.000000
+[mavros_node-2] [INFO] [1745358668.165346928] [mavros_node]: Plugin manual_control created
+[mavros_node-2] [INFO] [1745358668.165362774] [mavros_node]: Plugin manual_control initialized
+[mavros_node-2] [WARN] [1745358668.165399045] [rcl.logging_rosout]: Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[usb_cam_node_exe-1] [INFO] [1745358668.166118287] [usb_cam]: using default calibration URL
+[usb_cam_node_exe-1] [INFO] [1745358668.166137455] [usb_cam]: camera calibration URL: file:///home/kira/.ros/camera_info/camera.yaml
+[usb_cam_node_exe-1] [ERROR] [1745358668.166178092] [camera_calibration_parsers]: Unable to open camera calibration file [/home/kira/.ros/camera_info/camera.yaml]
+[usb_cam_node_exe-1] [WARN] [1745358668.166186727] [usb_cam]: Camera calibration file /home/kira/.ros/camera_info/camera.yaml not found
+[mavros_node-2] [INFO] [1745358668.167356008] [mavros_node]: Plugin nav_controller_output created
+[mavros_node-2] [INFO] [1745358668.167371991] [mavros_node]: Plugin nav_controller_output initialized
+[mavros_node-2] [WARN] [1745358668.167413548] [rcl.logging_rosout]: Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[mavros_node-2] terminate called after throwing an instance of 'rclcpp::exceptions::RCLError'
+[mavros_node-2]   what():  could not create service: create_service() called for existing request topic name rq/mavros_node/mavros_node/pullRequest with incompatible type mavros_msgs::srv::dds_::ParamPull_Request_, at ./src/rmw_service.cpp:165, at ./src/rcl/service.c:124
+[gesture_node-3] 2025-04-23 00:51:08.537676: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+[gesture_node-3] 2025-04-23 00:51:08.538337: I external/local_xla/xla/tsl/cuda/cudart_stub.cc:32] Could not find cuda drivers on your machine, GPU will not be used.
+[gesture_node-3] 2025-04-23 00:51:08.540321: I external/local_xla/xla/tsl/cuda/cudart_stub.cc:32] Could not find cuda drivers on your machine, GPU will not be used.
+[gesture_node-3] 2025-04-23 00:51:08.545723: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+[gesture_node-3] WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+[gesture_node-3] E0000 00:00:1745358668.554902   47976 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+[gesture_node-3] E0000 00:00:1745358668.557442   47976 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+[gesture_node-3] W0000 00:00:1745358668.564308   47976 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+[gesture_node-3] W0000 00:00:1745358668.564316   47976 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+[gesture_node-3] W0000 00:00:1745358668.564318   47976 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+[gesture_node-3] W0000 00:00:1745358668.564319   47976 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+[gesture_node-3] 2025-04-23 00:51:08.566484: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+[gesture_node-3] To enable the following instructions: AVX2 AVX_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+[usb_cam_node_exe-1] [INFO] [1745358668.725533711] [usb_cam]: Starting 'camera' (/dev/video0) at 1280x720 via mmap (yuyv) at 15 FPS
+[usb_cam_node_exe-1] This device supports the following formats:
+[usb_cam_node_exe-1] 	YUYV 4:2:2 640 x 480 (30 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 640 x 480 (25 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 640 x 480 (20 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 640 x 480 (15 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 640 x 480 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 640 x 480 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 160 x 120 (30 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 160 x 120 (25 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 160 x 120 (20 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 160 x 120 (15 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 160 x 120 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 160 x 120 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 176 x 144 (30 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 176 x 144 (25 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 176 x 144 (20 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 176 x 144 (15 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 176 x 144 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 176 x 144 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 320 x 176 (30 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 320 x 176 (25 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 320 x 176 (20 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 320 x 176 (15 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 320 x 176 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 320 x 176 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 320 x 240 (30 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 320 x 240 (25 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 320 x 240 (20 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 320 x 240 (15 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 320 x 240 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 320 x 240 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 352 x 288 (30 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 352 x 288 (25 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 352 x 288 (20 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 352 x 288 (15 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 352 x 288 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 352 x 288 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 432 x 240 (30 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 432 x 240 (25 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 432 x 240 (20 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 432 x 240 (15 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 432 x 240 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 432 x 240 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 544 x 288 (30 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 544 x 288 (25 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 544 x 288 (20 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 544 x 288 (15 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 544 x 288 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 544 x 288 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 640 x 360 (30 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 640 x 360 (25 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 640 x 360 (20 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 640 x 360 (15 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 640 x 360 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 640 x 360 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 752 x 416 (25 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 752 x 416 (20 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 752 x 416 (15 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 752 x 416 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 752 x 416 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 800 x 448 (20 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 800 x 448 (15 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 800 x 448 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 800 x 448 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 800 x 600 (20 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 800 x 600 (15 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 800 x 600 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 800 x 600 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 864 x 480 (20 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 864 x 480 (15 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 864 x 480 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 864 x 480 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 960 x 544 (15 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 960 x 544 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 960 x 544 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 960 x 720 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 960 x 720 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 1024 x 576 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 1024 x 576 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 1184 x 656 (10 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 1184 x 656 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 1280 x 720 (7 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 1280 x 720 (5 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 1280 x 960 (7 Hz)
+[usb_cam_node_exe-1] 	YUYV 4:2:2 1280 x 960 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 640 x 480 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 640 x 480 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 640 x 480 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 640 x 480 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 640 x 480 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 640 x 480 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 160 x 120 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 160 x 120 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 160 x 120 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 160 x 120 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 160 x 120 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 160 x 120 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 176 x 144 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 176 x 144 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 176 x 144 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 176 x 144 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 176 x 144 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 176 x 144 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 320 x 176 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 320 x 176 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 320 x 176 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 320 x 176 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 320 x 176 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 320 x 176 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 320 x 240 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 320 x 240 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 320 x 240 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 320 x 240 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 320 x 240 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 320 x 240 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 352 x 288 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 352 x 288 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 352 x 288 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 352 x 288 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 352 x 288 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 352 x 288 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 432 x 240 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 432 x 240 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 432 x 240 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 432 x 240 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 432 x 240 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 432 x 240 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 544 x 288 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 544 x 288 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 544 x 288 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 544 x 288 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 544 x 288 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 544 x 288 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 640 x 360 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 640 x 360 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 640 x 360 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 640 x 360 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 640 x 360 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 640 x 360 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 752 x 416 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 752 x 416 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 752 x 416 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 752 x 416 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 752 x 416 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 752 x 416 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 800 x 448 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 800 x 448 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 800 x 448 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 800 x 448 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 800 x 448 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 800 x 448 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 800 x 600 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 800 x 600 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 800 x 600 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 800 x 600 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 800 x 600 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 800 x 600 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 864 x 480 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 864 x 480 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 864 x 480 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 864 x 480 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 864 x 480 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 864 x 480 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 960 x 544 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 960 x 544 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 960 x 544 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 960 x 544 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 960 x 544 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 960 x 544 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 960 x 720 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 960 x 720 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 960 x 720 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 960 x 720 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 960 x 720 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 960 x 720 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1024 x 576 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1024 x 576 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1024 x 576 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1024 x 576 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1024 x 576 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1024 x 576 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1184 x 656 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1184 x 656 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1184 x 656 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1184 x 656 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1184 x 656 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1184 x 656 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1280 x 720 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1280 x 720 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1280 x 720 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1280 x 720 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1280 x 720 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1280 x 720 (5 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1280 x 960 (30 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1280 x 960 (25 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1280 x 960 (20 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1280 x 960 (15 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1280 x 960 (10 Hz)
+[usb_cam_node_exe-1] 	Motion-JPEG 1280 x 960 (5 Hz)
+[usb_cam_node_exe-1] [INFO] [1745358668.777285496] [usb_cam]: Setting 'brightness' to 50
+[usb_cam_node_exe-1] unknown control 'white_balance_temperature_auto'
+[usb_cam_node_exe-1] 
+[usb_cam_node_exe-1] [INFO] [1745358668.790748987] [usb_cam]: Setting 'white_balance_temperature_auto' to 1
+[usb_cam_node_exe-1] [INFO] [1745358668.790782122] [usb_cam]: Setting 'exposure_auto' to 3
+[usb_cam_node_exe-1] unknown control 'exposure_auto'
+[usb_cam_node_exe-1] 
+[usb_cam_node_exe-1] [INFO] [1745358668.795970808] [usb_cam]: Setting 'focus_auto' to 0
+[usb_cam_node_exe-1] unknown control 'focus_auto'
+[usb_cam_node_exe-1] 
+[usb_cam_node_exe-1] [INFO] [1745358668.810723723] [usb_cam]: Timer triggering every 66 ms
+[gesture_node-3] [ERROR] [1745358669.551532773] [gesture_node]: Failed to import GestureClassifier: No module named 'model'
+[gesture_node-3] УВИДЕЛОХУЙ***********************************
+[gesture_node-3] УВИДЕЛОХУЙ2***********************************
+[gesture_node-3] УВИДЕЛОХУЙ4***********************************
+[gesture_node-3] Traceback (most recent call last):
+[gesture_node-3]   File "/home/kira/ros2_ws/install/gesture_control/lib/gesture_control/gesture_node", line 33, in <module>
+[gesture_node-3]     sys.exit(load_entry_point('gesture-control==0.0.0', 'console_scripts', 'gesture_node')())
+[gesture_node-3]   File "/home/kira/ros2_ws/install/gesture_control/lib/python3.10/site-packages/gesture_control/gesture_node.py", line 132, in main
+[gesture_node-3]     node = GestureNode()
+[gesture_node-3]   File "/home/kira/ros2_ws/install/gesture_control/lib/python3.10/site-packages/gesture_control/gesture_node.py", line 50, in __init__
+[gesture_node-3]     spec.loader.exec_module(module)
+[gesture_node-3]   File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+[gesture_node-3]   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+[gesture_node-3]   File "/home/kira/Desktop/hand-gesture-recognition-mediapipe-main/app_for_ros2.py", line 9, in <module>
+[gesture_node-3]     from model import KeyPointClassifier
+[gesture_node-3] ModuleNotFoundError: No module named 'model'
+[ERROR] [gesture_node-3]: process has died [pid 47976, exit code 1, cmd '/home/kira/ros2_ws/install/gesture_control/lib/gesture_control/gesture_node --ros-args -r __node:=gesture_node'].
+[ERROR] [mavros_node-2]: process has died [pid 47974, exit code -6, cmd '/opt/ros/humble/lib/mavros/mavros_node --ros-args -r __node:=mavros_node'].
+[usb_cam_node_exe-1] [WARN] [1745358694.140159388] [usb_cam.rclcpp]: failed to send response to /usb_cam/get_parameters (timeout): client will not receive response, at ./src/rmw_response.cpp:154, at ./src/rcl/service.c:314
+
+
+[gesture_node-3] [ERROR] [1745358695.442927365] [gesture_node]: Failed to import GestureClassifier: No module named 'model'
+[gesture_node-3] УВИДЕЛОХУЙ***********************************
+[gesture_node-3] УВИДЕЛОХУЙ2***********************************
+[gesture_node-3] УВИДЕЛОХУЙ4***********************************
+[gesture_node-3] Traceback (most recent call last):
+[gesture_node-3]   File "/home/kira/ros2_ws/install/gesture_control/lib/gesture_control/gesture_node", line 33, in <module>
+[gesture_node-3]     sys.exit(load_entry_point('gesture-control==0.0.0', 'console_scripts', 'gesture_node')())
+[gesture_node-3]   File "/home/kira/ros2_ws/install/gesture_control/lib/python3.10/site-packages/gesture_control/gesture_node.py", line 132, in main
+[gesture_node-3]     node = GestureNode()
+[gesture_node-3]   File "/home/kira/ros2_ws/install/gesture_control/lib/python3.10/site-packages/gesture_control/gesture_node.py", line 50, in __init__
+[gesture_node-3]     spec.loader.exec_module(module)
+[gesture_node-3]   File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+[gesture_node-3]   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+[gesture_node-3]   File "/home/kira/Desktop/hand-gesture-recognition-mediapipe-main/app_for_ros2.py", line 9, in <module>
+[gesture_node-3]     from model import KeyPointClassifier
+[gesture_node-3] ModuleNotFoundError: No module named 'model'
+[ERROR] [gesture_node-3]: process has died [pid 48177, exit code 1, cmd '/home/kira/ros2_ws/install/gesture_control/lib/gesture_control/gesture_node --ros-args -r __node:=gesture_node'].
+[ERROR] [mavros_node-2]: process has died [pid 48175, exit code -6, cmd '/opt/ros/humble/lib/mavros/mavros_node --ros-args -r __node:=mavros_node'].

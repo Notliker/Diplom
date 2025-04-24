@@ -1,0 +1,21 @@
+gesture_classifier:
+  script_path: "/home/kira/Desktop/hand-gesture-recognition-mediapipe-main/app_for_ros2.py"
+  keypoint_classifier:
+    model_path: "/home/kira/Desktop/hand-gesture-recognition-mediapipe-main/model/keypoint_classifier/keypoint_classifier.tflite"
+    label_path: "/home/kira/Desktop/hand-gesture-recognition-mediapipe-main/model/keypoint_classifier/keypoint_classifier_label.csv"
+  point_history_classifier:
+    model_path: "/home/kira/Desktop/hand-gesture-recognition-mediapipe-main/model/point_history_classifier/point_history_classifier.tflite"
+    label_path: "/home/kira/Desktop/hand-gesture-recognition-mediapipe-main/model/point_history_classifier/point_history_classifier_label.csv"
+  hands:
+    max_num_hands: 1
+    min_detection_confidence: 0.7
+    min_tracking_confidence: 0.5
+  pose:
+    model_complexity: 1
+    min_detection_confidence: 0.5
+    min_tracking_confidence: 0.5
+  topic:
+    image_input: "/usb_cam/image_raw"
+    cmd_vel_output: "/mavros/setpoint_velocity/cmd_vel"
+    arming_srv: "/mavros/cmd/arming"
+  speed: 0.5

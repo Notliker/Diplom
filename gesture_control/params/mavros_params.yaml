@@ -1,0 +1,18 @@
+mavros_node:
+  ros__parameters:
+    fcu_url: "udp://:14540@127.0.0.1:14580"
+    system_id: 1
+    component_id: 1
+    plugin_blacklist: []
+    plugin_whitelist:
+      - actuator_control
+      - altitude
+      - command
+      - ftp
+      - geofence
+      - global_position
+      - home_position
+      - imu
+      - local_position
+      - manual_control
+      - nav_controller_output
