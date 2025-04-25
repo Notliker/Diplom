@@ -49,11 +49,12 @@ from px4_msgs.msg import TrajectorySetpoint
 from geometry_msgs.msg import PoseStamped, Point
 from nav_msgs.msg import Path
 from visualization_msgs.msg import Marker
+from builtin_interfaces.msg import Time  # добавь в импорты
 
 def vector2PoseMsg(frame_id, position, attitude):
     pose_msg = PoseStamped()
-    # msg.header.stamp = Clock().now().nanoseconds / 1000
-    pose_msg.header.frame_id=frame_id
+    pose_msg.header.stamp = pose_msg.header.stamp = rclpy.clock.Clock().now().to_msg()  
+    pose_msg.header.frame_id = frame_id
     pose_msg.pose.orientation.w = attitude[0]
     pose_msg.pose.orientation.x = attitude[1]
     pose_msg.pose.orientation.y = attitude[2]
@@ -130,7 +131,7 @@ class PX4Visualizer(Node):
         msg = Marker()
         msg.action = Marker.ADD
         msg.header.frame_id = 'map'
-        # msg.header.stamp = Clock().now().nanoseconds / 1000
+        msg.header.stamp = self.get_clock().now().to_msg()
         msg.ns = 'arrow'
         msg.id = id
         msg.type = Marker.ARROW
@@ -141,17 +142,22 @@ class PX4Visualizer(Node):
         msg.color.g = 0.5
         msg.color.b = 0.0
         msg.color.a = 1.0
-        dt = 0.3
-        tail_point = Point()
-        tail_point.x = tail[0]
-        tail_point.y = tail[1]
-        tail_point.z = tail[2]
-        head_point = Point()
-        head_point.x = tail[0] + dt * vector[0]
-        head_point.y = tail[1] + dt * vector[1]
-        head_point.z = tail[2] + dt * vector[2]
+
+        dt = 0.5
+        direction = np.array(vector)
+        norm = np.linalg.norm(direction)
+        if norm > 0.001:
+            direction = direction / norm
+        else:
+            direction = np.array([1.0, 0.0, 0.0])  # по умолчанию, если почти нулевая скорость
+
+        head = tail + dt * direction
+
+        tail_point = Point(x=tail[0], y=tail[1], z=tail[2])
+        head_point = Point(x=head[0], y=head[1], z=head[2])
         msg.points = [tail_point, head_point]
         return msg
+
 
     def cmdloop_callback(self):
         vehicle_pose_msg = vector2PoseMsg('map', self.vehicle_local_position, self.vehicle_attitude)

@@ -169,6 +169,8 @@ class GestureNode(Node):
 
             elif gesture in self.gesture_commands:
                 x, y, z, yaw = self.gesture_commands[gesture]
+                if gesture not in ['Up', 'Down']:
+                    z = 0.0
                 self.current_command = (x * self.speed, y * self.speed, z * self.speed, yaw)
                 twist = TwistStamped()
                 twist.header.stamp = self.get_clock().now().to_msg()
@@ -181,6 +183,7 @@ class GestureNode(Node):
                 self.get_logger().info(f' Команда: x={x}, y={y}, z={z}, yaw={yaw}')
             else:
                 self.get_logger().debug('Жест не распознан или не предусмотрен')
+                self.current_command = (0.0, 0.0, 0.0, 0.0)
         except Exception as e:
             self.get_logger().error(f' Ошибка обработки изображения: {e}')
 

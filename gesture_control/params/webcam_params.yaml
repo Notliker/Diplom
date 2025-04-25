@@ -10,4 +10,4 @@
     frame_id: "camera"
     camera_info_url: ""
     camera_name: "camera"
-    brightnes: 100
+    brightness: 100
