@@ -1,353 +1,224 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Hand Gesture Recognition with SAHI-like Fallback maintaining Original Resolution
+
+Original gesture preprocessing restored to maintain classification orientation.
+"""
 import csv
 import copy
 import argparse
+import time
+from collections import Counter, deque
 import itertools
-from collections import Counter
-from collections import deque
 
 import cv2 as cv
 import numpy as np
 import mediapipe as mp
 
 from utils import CvFpsCalc
-from model import KeyPointClassifier
-from model import PointHistoryClassifier
+from model import KeyPointClassifier, PointHistoryClassifier
+
+# Constants
+HISTORY_LEN = 16
+# Load labels
+with open('model/keypoint_classifier/keypoint_classifier_label.csv', 'r', encoding='utf-8-sig') as f:
+    KP_LABELS = [r[0] for r in csv.reader(f)]
+with open('model/point_history_classifier/point_history_classifier_label.csv', 'r', encoding='utf-8-sig') as f:
+    PH_LABELS = [r[0] for r in csv.reader(f)]
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-
+    parser = argparse.ArgumentParser(description="SAHI-like Hand Gesture Recognition")
     parser.add_argument("--device", type=int, default=0)
-    parser.add_argument("--width", help='cap width', type=int, default=1280)
-    parser.add_argument("--height", help='cap height', type=int, default=720)
-
-    parser.add_argument('--use_static_image_mode', action='store_true')
-    parser.add_argument("--min_detection_confidence",
-                        help='min_detection_confidence',
-                        type=float,
-                        default=0.7) #0.7
-    parser.add_argument("--min_tracking_confidence",
-                        help='min_tracking_confidence',
-                        type=int,
-                        default=0.5) #0.5
-
-    args = parser.parse_args()
-
-    return args
+    parser.add_argument("--min-detection-confidence", type=float, default=0.7)
+    parser.add_argument("--min-tracking-confidence", type=float, default=0.5)
+    parser.add_argument("--use-static-image-mode", action="store_true")
+    parser.add_argument("--tile-size", type=int, default=500, help="Base tile size for SAHI search")
+    parser.add_argument("--tile-stride", type=int, default=250, help="Tile stride for SAHI search")
+    parser.add_argument("--fallback-time-sec", type=float, default=1.0, help="Seconds of no detection before SAHI fallback")
+    return parser.parse_args()
 
 
 def main():
-    # Argument parsing #################################################################
     args = get_args()
+    hands = mp.solutions.hands.Hands(
+        static_image_mode=args.use_static_image_mode,
+        max_num_hands=1,
+        min_detection_confidence=args.min_detection_confidence,
+        min_tracking_confidence=args.min_tracking_confidence)
 
-    mp_pose = mp.solutions.pose
-    pose = mp_pose.Pose(static_image_mode=False, model_complexity=1, min_detection_confidence=0.5, min_tracking_confidence=0.5)
+    kp_clf = KeyPointClassifier()
+    ph_clf = PointHistoryClassifier()
 
-
-    cap_device = args.device
-    cap_width = args.width
-    cap_height = args.height
-
-    use_static_image_mode = args.use_static_image_mode
-    min_detection_confidence = args.min_detection_confidence
-    min_tracking_confidence = args.min_tracking_confidence
-
-    use_brect = True
-
-    # Camera preparation ###############################################################
-    cap = cv.VideoCapture(cap_device)
+    cap = cv.VideoCapture(args.device)
     cap.set(cv.CAP_PROP_FRAME_WIDTH, 1920)
     cap.set(cv.CAP_PROP_FRAME_HEIGHT, 1080)
 
-    # Model load #############################################################
-    mp_hands = mp.solutions.hands
-    hands = mp_hands.Hands(
-        static_image_mode=use_static_image_mode,
-        max_num_hands=1,
-        min_detection_confidence=min_detection_confidence,
-        min_tracking_confidence=min_tracking_confidence,
-    )
+    fps_calc = CvFpsCalc(buffer_len=10)
+    point_hist = deque(maxlen=HISTORY_LEN)
+    gesture_hist = deque(maxlen=HISTORY_LEN)
+    last_detect_time = time.time()
 
-    keypoint_classifier = KeyPointClassifier()
-
-    point_history_classifier = PointHistoryClassifier()
-
-    # Read labels ###########################################################
-    with open('model/keypoint_classifier/keypoint_classifier_label.csv',
-              encoding='utf-8-sig') as f:
-        keypoint_classifier_labels = csv.reader(f)
-        keypoint_classifier_labels = [
-            row[0] for row in keypoint_classifier_labels
-        ]
-    with open(
-            'model/point_history_classifier/point_history_classifier_label.csv',
-            encoding='utf-8-sig') as f:
-        point_history_classifier_labels = csv.reader(f)
-        point_history_classifier_labels = [
-            row[0] for row in point_history_classifier_labels
-        ]
-
-    # FPS Measurement ########################################################
-    cvFpsCalc = CvFpsCalc(buffer_len=10)
-
-    # Coordinate history #################################################################
-    history_length = 16
-    point_history = deque(maxlen=history_length)
-
-    # Finger gesture history ################################################
-    finger_gesture_history = deque(maxlen=history_length)
-
-    #  ########################################################################
     mode = 0
+    def select_mode(key):
+        nonlocal mode
+        n=-1
+        if 48<=key<=57: n=key-48
+        if key==ord('n'): mode=0
+        if key==ord('k'): mode=1
+        if key==ord('h'): mode=2
+        return n
 
     while True:
-        fps = cvFpsCalc.get()
-
-        # Process Key (ESC: end) #################################################
+        ret, frame = cap.read()
+        if not ret: break
+        frame = cv.flip(frame,1)
+        fps = fps_calc.get()
         key = cv.waitKey(10)
-        if key == 27:  # ESC
-            break
-        number, mode = select_mode(key, mode)
+        if key==27: break
+        num = select_mode(key)
 
-        # Camera capture #####################################################
-        ret, image = cap.read()
-        if not ret:
-            break
-        image = cv.flip(image, 1)  # Mirror display
-        debug_image = copy.deepcopy(image)
+        found, debug = detect_and_classify(frame, hands, kp_clf, ph_clf,
+                                           point_hist, gesture_hist,
+                                           num, fps, mode)
+        now = time.time()
+        if found:
+            last_detect_time = now
+        elif now-last_detect_time>args.fallback_time_sec:
+            found, debug = sahi_fallback(frame, hands, kp_clf, ph_clf,
+                                          point_hist, gesture_hist,
+                                          num, fps, mode,
+                                          args.tile_size, args.tile_stride)
+            if found: last_detect_time = now
 
-        # Detection implementation #############################################################
-        # Преобразуем кадр для обработки позы
-        # Преобразуем кадр для обработки позы
-        frame_rgb = cv.cvtColor(image, cv.COLOR_BGR2RGB)
-        results_pose = pose.process(frame_rgb)
-
-        frame_h, frame_w, _ = image.shape
-
-        if results_pose.pose_landmarks:
-            # Вычисляем исходные (без отступов) координаты человека
-            orig_min_x = min(int(l.x * frame_w) for l in results_pose.pose_landmarks.landmark)
-            orig_max_x = max(int(l.x * frame_w) for l in results_pose.pose_landmarks.landmark)
-            orig_min_y = min(int(l.y * frame_h) for l in results_pose.pose_landmarks.landmark)
-            orig_max_y = max(int(l.y * frame_h) for l in results_pose.pose_landmarks.landmark)
-            person_height_without_padding = orig_max_y - orig_min_y
-
-            # Добавляем отступы (50 пикселей) к исходным координатам
-            padding = 50
-            min_x = max(0, orig_min_x - padding)
-            max_x = min(frame_w, orig_max_x + padding)
-            min_y = max(0, orig_min_y - padding)
-            max_y = min(frame_h, orig_max_y + padding)
-
-            person_width = max_x - min_x
-            person_height = max_y - min_y
-            center_x = (min_x + max_x) // 2
-            center_y = (min_y + max_y) // 2
-
-            # Рассчитываем коэффициент масштабирования на основе исходной высоты человека (без padding)
-            scaling_factor = min(500 / person_height_without_padding, 3)
-
-            # Рассчитываем область обрезки с сохранением центра
-            cropped_x_min = max(0, center_x - person_width // 2 - padding)
-            cropped_x_max = min(frame_w, center_x + person_width // 2 + padding)
-            cropped_y_min = max(0, center_y - person_height // 2 - padding)
-            cropped_y_max = min(frame_h, center_y + person_height // 2 + padding)
-
-            cropped_image = image[cropped_y_min:cropped_y_max, cropped_x_min:cropped_x_max]
-
-            # Масштабируем обрезанное изображение с сохранением пропорций
-            scaled_width = int((cropped_x_max - cropped_x_min) * scaling_factor)
-            scaled_height = int((cropped_y_max - cropped_y_min) * scaling_factor)
-            target_height = 500
-            person_height = cropped_image.shape[0]  # Исходная высота обрезанного изображения
-            if person_height > 0:
-                scaling_factor = target_height / person_height
-            
-            scaled_width = int(cropped_image.shape[1] * scaling_factor)
-            scaled_height = int(cropped_image.shape[0] * scaling_factor)
-
-            # Пропорциональное масштабирование
-            scaled_image = cv.resize(cropped_image, (scaled_width, scaled_height), interpolation=cv.INTER_LANCZOS4)
-
-            # Откладка
-            cv.imshow("Cropped", cropped_image)
-        else:
-            # Если человек не обнаружен, масштабируем весь кадр до 1280x720
-            scaled_image = cv.resize(image, (1280, 720), interpolation=cv.INTER_LANCZOS4)
-            cv.imshow("Scaled", scaled_image)
-            cv.waitKey(1)  # или задержка для наблюдения за результатом
+        cv.imshow('Hand Gesture Recognition', debug)
+    cap.release(); cv.destroyAllWindows()
 
 
+def detect_and_classify(frame, hands, kp_clf, ph_clf,
+                        point_hist, gesture_hist,
+                        num, fps, mode):
+    img=frame; debug=img.copy()
+    rgb=cv.cvtColor(img,cv.COLOR_BGR2RGB)
+    img.flags.writeable=False
+    res=hands.process(rgb)
+    img.flags.writeable=True
 
-        image.flags.writeable = False
-        results = hands.process(cv.cvtColor(scaled_image, cv.COLOR_BGR2RGB))
-        image.flags.writeable = True
-
-        #  ####################################################################
-        if results.multi_hand_landmarks is not None and len(results.multi_hand_landmarks) > 0:
-            for hand_landmarks, handedness in zip(results.multi_hand_landmarks,
-                                                  results.multi_handedness):
-                # Bounding box calculation
-                brect = calc_bounding_rect(scaled_image, hand_landmarks)
-                # Landmark calculation
-                landmark_list = calc_landmark_list(scaled_image, hand_landmarks)
-
-                # Conversion to relative coordinates / normalized coordinates
-                pre_processed_landmark_list = pre_process_landmark(
-                    landmark_list, brect)
-
-                pre_processed_point_history_list = pre_process_point_history(
-                    scaled_image, point_history)
-                # Write to the dataset file
-                logging_csv(number, mode, pre_processed_landmark_list,
-                            pre_processed_point_history_list)
-
-                # Hand sign classification
-                hand_sign_id = keypoint_classifier(pre_processed_landmark_list)
-                if hand_sign_id == 2:  # Point gesture
-                    point_history.append(landmark_list[8])
-                else:
-                    point_history.append([0, 0])
-
-                # Finger gesture classification
-                finger_gesture_id = 0
-                point_history_len = len(pre_processed_point_history_list)
-                if point_history_len == (history_length * 2):
-                    finger_gesture_id = point_history_classifier(
-                        pre_processed_point_history_list)
-
-                # Calculates the gesture IDs in the latest detection
-                finger_gesture_history.append(finger_gesture_id)
-                most_common_fg_id = Counter(
-                    finger_gesture_history).most_common()
-
-                # Drawing part
-                debug_image = draw_bounding_rect(use_brect, scaled_image, brect)
-                debug_image = draw_landmarks(scaled_image, landmark_list)
-                debug_image = draw_info_text(
-                    scaled_image,
-                    brect,
-                    handedness,
-                    keypoint_classifier_labels[hand_sign_id],
-                    point_history_classifier_labels[most_common_fg_id[0][0]],
-                )
-        else:
-            point_history.append([0, 0])
-
-        debug_image = draw_point_history(debug_image, point_history)
-        debug_image = draw_info(debug_image, fps, mode, number)
-
-        # Screen reflection #############################################################
-        cv.imshow('Hand Gesture Recognition', debug_image)
-
-    cap.release()
-    cv.destroyAllWindows()
+    found=False
+    if res.multi_hand_landmarks:
+        found=True
+        lms=res.multi_hand_landmarks[0]; hd=res.multi_handedness[0]
+        brect=calc_bounding_rect(img,lms)
+        lm_list=calc_landmark_list(img,lms)
+        # original preprocessing
+        plm=pre_process_landmark(lm_list)
+        pph=pre_process_point_history(img,point_hist)
+        logging_csv(num,mode,plm,pph)
+        sid=kp_clf(plm)
+        if sid==2: point_hist.append(lm_list[8])
+        else:       point_hist.append([0,0])
+        fid=0
+        if len(pph)==HISTORY_LEN*2: fid=ph_clf(pph)
+        gesture_hist.append(fid)
+        most=Counter(gesture_hist).most_common(1)[0][0]
+        debug=draw_bounding_rect(True,debug,brect)
+        debug=draw_landmarks(debug,lm_list)
+        debug=draw_info_text(debug,brect,hd, KP_LABELS[sid],PH_LABELS[most])
+    else:
+        point_hist.append([0,0])
+    debug=draw_point_history(debug,point_hist)
+    debug=draw_info(debug,fps,mode,num)
+    return found,debug
 
 
-def select_mode(key, mode):
-    number = -1
-    if 48 <= key <= 57:  # 0 ~ 9
-        number = key - 48
-    if key == 110:  # n
-        mode = 0
-    if key == 107:  # k
-        mode = 1
-    if key == 104:  # h
-        mode = 2
-    return number, mode
+def sahi_fallback(frame,hands,kp_clf,ph_clf,
+                  point_hist,gesture_hist,
+                  num,fps,mode,
+                  base_size,stride):
+    fh,fw=frame.shape[:2]; aspect=fw/fh
+    tile_h=base_size; tile_w=int(base_size*aspect)
+    debug=frame.copy(); found=False
+    for y in range(0,fh-tile_h+1,stride):
+        for x in range(0,fw-tile_w+1,stride):
+            tile=frame[y:y+tile_h,x:x+tile_w]
+            rgb=cv.cvtColor(tile,cv.COLOR_BGR2RGB)
+            res=hands.process(rgb)
+            if res.multi_hand_landmarks:
+                found=True
+                lms=res.multi_hand_landmarks[0]; hd=res.multi_handedness[0]
+                brect=calc_bounding_rect(tile,lms)
+                lm_list=calc_landmark_list(tile,lms)
+                plm=pre_process_landmark(lm_list)
+                pph=pre_process_point_history(tile,point_hist)
+                logging_csv(num,mode,plm,pph)
+                sid=kp_clf(plm)
+                if sid==2: point_hist.append(lm_list[8])
+                else:       point_hist.append([0,0])
+                fid=0
+                if len(pph)==HISTORY_LEN*2: fid=ph_clf(pph)
+                gesture_hist.append(fid)
+                most=Counter(gesture_hist).most_common(1)[0][0]
+                x0,y0=x,y
+                gr=[x0+brect[0],y0+brect[1],x0+brect[2],y0+brect[3]]
+                debug=draw_bounding_rect(True,debug,gr)
+                pts=[(pt[0]+x0,pt[1]+y0) for pt in lm_list]
+                debug=draw_landmarks(debug,pts)
+                debug=draw_info_text(debug,gr,hd, KP_LABELS[sid],PH_LABELS[most])
+                break
+        if found: break
+    if not found: point_hist.append([0,0])
+    debug=draw_point_history(debug,point_hist)
+    debug=draw_info(debug,fps,mode,num)
+    return found,debug
+
+# Helper functions
+
+def calc_bounding_rect(image,landmarks):
+    h,w=image.shape[:2]
+    pts=np.array([[int(lm.x*w),int(lm.y*h)] for lm in landmarks.landmark])
+    x,y,ww,hh=cv.boundingRect(pts)
+    return [x,y,x+ww,y+hh]
+
+def calc_landmark_list(image,landmarks):
+    h,w=image.shape[:2]
+    return [[min(int(lm.x*w),w-1),min(int(lm.y*h),h-1)] for lm in landmarks.landmark]
+
+# ORIGINAL preprocessing functions restored:
+
+def pre_process_landmark(landmark_list):
+    temp_landmark_list=copy.deepcopy(landmark_list)
+    base_x,base_y=0,0
+    for i,pt in enumerate(temp_landmark_list):
+        if i==0:
+            base_x,base_y=pt[0],pt[1]
+        temp_landmark_list[i][0]=pt[0]-base_x
+        temp_landmark_list[i][1]=pt[1]-base_y
+    temp_one_d=list(itertools.chain.from_iterable(temp_landmark_list))
+    max_v=max(map(abs,temp_one_d)) or 1
+    return [v/max_v for v in temp_one_d]
 
 
-def calc_bounding_rect(image, landmarks):
-    image_width, image_height = image.shape[1], image.shape[0]
-
-    landmark_array = np.empty((0, 2), int)
-
-    for _, landmark in enumerate(landmarks.landmark):
-        landmark_x = min(int(landmark.x * image_width), image_width - 1)
-        landmark_y = min(int(landmark.y * image_height), image_height - 1)
-
-        landmark_point = [np.array((landmark_x, landmark_y))]
-
-        landmark_array = np.append(landmark_array, landmark_point, axis=0)
-
-    x, y, w, h = cv.boundingRect(landmark_array)
-
-    return [x, y, x + w, y + h]
+def pre_process_point_history(image,point_history):
+    w,h=image.shape[1],image.shape[0]
+    temp=copy.deepcopy(point_history)
+    base_x,base_y=0,0
+    for i,pt in enumerate(temp):
+        if i==0: base_x,base_y=pt[0],pt[1]
+        temp[i][0]=(pt[0]-base_x)/w
+        temp[i][1]=(pt[1]-base_y)/h
+    return list(itertools.chain.from_iterable(temp))
 
 
-def calc_landmark_list(image, landmarks):
-    image_width, image_height = image.shape[1], image.shape[0]
+def logging_csv(num,mode,lm,ph):
+    if mode==1 and 0<=num<=9:
+        with open('model/keypoint_classifier/keypoint.csv','a',newline='') as f:
+            csv.writer(f).writerow([num,*lm])
+    if mode==2 and 0<=num<=9:
+        with open('model/point_history_classifier/point_history.csv','a',newline='') as f:
+            csv.writer(f).writerow([num,*ph])
 
-    landmark_point = []
-
-    # Keypoint
-    for _, landmark in enumerate(landmarks.landmark):
-        landmark_x = min(int(landmark.x * image_width), image_width - 1)
-        landmark_y = min(int(landmark.y * image_height), image_height - 1)
-        # landmark_z = landmark.z
-
-        landmark_point.append([landmark_x, landmark_y])
-
-    return landmark_point
-
-
-def pre_process_landmark(landmark_list, brect):
-    temp_landmark_list = copy.deepcopy(landmark_list)
-    brect_width = brect[2] - brect[0]
-    brect_height = brect[3] - brect[1]
-    
-    # Используем первую точку в качестве базовой
-    base_x, base_y = temp_landmark_list[0][0], temp_landmark_list[0][1]
-    for index, landmark_point in enumerate(temp_landmark_list):
-        temp_landmark_list[index][0] = (landmark_point[0] - base_x) / brect_width
-        temp_landmark_list[index][1] = (landmark_point[1] - base_y) / brect_height
-    
-    # Преобразуем список в одномерный вектор
-    temp_landmark_list = list(itertools.chain.from_iterable(temp_landmark_list))
-    return temp_landmark_list
-
-
-
-def pre_process_point_history(image, point_history):
-    image_width, image_height = image.shape[1], image.shape[0]
-
-    temp_point_history = copy.deepcopy(point_history)
-
-    # Convert to relative coordinates
-    base_x, base_y = 0, 0
-    for index, point in enumerate(temp_point_history):
-        if index == 0:
-            base_x, base_y = point[0], point[1]
-
-        temp_point_history[index][0] = (temp_point_history[index][0] -
-                                        base_x) / image_width
-        temp_point_history[index][1] = (temp_point_history[index][1] -
-                                        base_y) / image_height
-
-    # Convert to a one-dimensional list
-    temp_point_history = list(
-        itertools.chain.from_iterable(temp_point_history))
-
-    return temp_point_history
-
-
-def logging_csv(number, mode, landmark_list, point_history_list):
-    if mode == 0:
-        pass
-    if mode == 1 and (0 <= number <= 9):
-        csv_path = 'model/keypoint_classifier/keypoint.csv'
-        with open(csv_path, 'a', newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow([number, *landmark_list])
-    if mode == 2 and (0 <= number <= 9):
-        csv_path = 'model/point_history_classifier/point_history.csv'
-        with open(csv_path, 'a', newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow([number, *point_history_list])
-    return
-
+# Drawing placeholders
 
 def draw_landmarks(image, landmark_point):
     if len(landmark_point) > 0:
@@ -593,6 +464,4 @@ def draw_info(image, fps, mode, number):
                        cv.LINE_AA)
     return image
 
-
-if __name__ == '__main__':
-    main()
+if __name__=='__main__': main()
