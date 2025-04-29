@@ -6,6 +6,7 @@ import logging
 import cv2
 import rclpy
 from rclpy.node import Node
+from rclpy.time import Time
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import TwistStamped
@@ -41,12 +42,24 @@ class GestureNode(Node):
         self.classifier = GestureClassifier(self.cfg)
 
         self.bridge = CvBridge()
-        self.current_command = (0.0, 0.0, 0.0, 0.0)  # x, y, z, yaw
+        self.current_command = (0.0, 0.0, 0.05, 0.0)  # x, y, z, yaw; z=0.05 для удержания высоты
         self.current_state = State()
         self.offboard_attempts = 0
         self.max_offboard_attempts = 5
         self.disarm_count = 0
         self.disarm_threshold = 15  # Требуется 15 последовательных распознаваний Disarm
+        self.move_start_time = None  # Время начала движения (rclpy.time.Time)
+        self.move_duration = 0.0  # Длительность движения в секундах
+        self.last_move_gesture = None  # Последний распознанный move_gesture
+        self.move_gesture_count = 0  # Счётчик последовательных распознаваний
+
+        # Пороги для LEFT и RIGHT
+        self.move_gesture_thresholds = {
+            'LEFT': 5,
+            'RIGHT': 5,
+            'FORWORD': 5,
+            'BACKWORD': 5,
+        }
 
         # Подписка на состояние дрона
         self.state_sub = self.create_subscription(
@@ -91,10 +104,19 @@ class GestureNode(Node):
             'Backward': (-1.0, 0.0, 0.0, 0.0),
         }
 
-        self.speed = self.cfg.get('speed', 0.5)
+        self.move_gesture_command = {
+            'LEFT': (0.0, 1.0, 0.0, 0.0),
+            'RIGHT': (0.0, -1.0, 0.0, 0.0),
+            'FORWORD': (1.0, 0.0, 0.0, 0.0),
+            'BACKWORD': (-1.0, 0.0, 0.0, 0.0),
+        }
 
-        # Таймер для команд и проверки режима
-        self.timer = self.create_timer(0.1, self.timer_callback)
+        self.speed = self.cfg.get('speed', 0.5)
+        self.distance = 5.0  # Целевое расстояние для линейного движения (м)
+        self.linear_move_duration = self.distance / self.speed  # Время для 5 м
+
+        # Таймер для команд и проверки режима (20 Гц)
+        self.timer = self.create_timer(0.05, self.timer_callback)
 
         self.get_logger().info(f' GestureNode инициализирован, подписан на {self.cfg.topic.image_input}')
 
@@ -143,13 +165,24 @@ class GestureNode(Node):
             self.get_logger().info(f'Дрон в режиме {self.current_state.mode}, попытка переключить в OFFBOARD')
             self.set_mode('OFFBOARD')
 
+        # Проверяем, завершено ли движение для Pointer
+        if self.move_start_time is not None:
+            elapsed = (self.get_clock().now() - self.move_start_time).nanoseconds * 1e-9
+            if elapsed >= self.move_duration:
+                self.get_logger().info('Движение Pointer завершено')
+                self.current_command = (0.0, 0.0, 0.05, 0.0)  # Возвращаемся к удержанию высоты
+                self.move_start_time = None
+                self.move_duration = 0.0
+                self.last_move_gesture = None
+                self.move_gesture_count = 0
+
     def arm_response_cb(self, future):
         try:
             result = future.result()
             if result.success:
                 self.get_logger().info('🛩️ Arm успешен')
                 # Начинаем публиковать команды скорости для OFFBOARD
-                self.current_command = (0.0, 0.0, 0.0, 0.0)  # Нулевые команды для стабильности
+                self.current_command = (0.0, 0.0, 0.05, 0.0)  # z=0.05 для удержания высоты
                 # Устанавливаем режим OFFBOARD
                 self.set_mode('OFFBOARD')
                 # Отправляем команду на взлёт
@@ -195,7 +228,15 @@ class GestureNode(Node):
             img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
             img = cv2.flip(img, 1)  # Переворачиваем изображение по горизонтали
             gesture, move_gesture = self.classifier.classify_gesture(img)
-            self.get_logger().info(f' Распознан жест: {gesture}')
+            # Преобразуем move_gesture в верхний регистр для единообразия
+            if move_gesture is not None:
+                move_gesture = move_gesture.upper()
+            self.get_logger().info(f'Распознан жест: {gesture}, Move gesture: {move_gesture}')
+
+            # Пропускаем новые команды Pointer, если движение ещё не завершено
+            if self.move_start_time is not None:
+                self.get_logger().debug('Движение Pointer ещё не завершено, игнорируем новый жест')
+                return
 
             if gesture == 'Arm':
                 self.disarm_count = 0  # Сбрасываем счётчик Disarm
@@ -213,13 +254,40 @@ class GestureNode(Node):
                     future = self.arm_client.call_async(req)
                     future.add_done_callback(self.disarm_response_cb)
                 else:
-                    self.current_command = (0.0, 0.0, 0.0, 0.0)  # Останавливаем движение
+                    self.current_command = (0.0, 0.0, 0.05, 0.0)  # z=0.05 для удержания высоты
+
+            elif gesture == 'Pointer' and move_gesture in self.move_gesture_command:
+                self.disarm_count = 0  # Сбрасываем счётчик Disarm
+                # Для FORWARD и BACKWARD движение начинается сразу
+                if move_gesture in ['FORWARD', 'BACKWARD']:
+                    x, y, z, yaw = self.move_gesture_command[move_gesture]
+                    self.current_command = (x * self.speed, y * self.speed, z * self.speed, yaw)
+                    self.move_start_time = self.get_clock().now()
+                    self.move_duration = self.linear_move_duration  # Время для 5 м
+                    self.get_logger().info(f'Начато движение Pointer: {move_gesture}, длительность: {self.move_duration} сек')
+                    self.last_move_gesture = None
+                    self.move_gesture_count = 0
+                else:
+                    # Для LEFT и RIGHT проверяем порог
+                    if move_gesture == self.last_move_gesture:
+                        self.move_gesture_count += 1
+                    else:
+                        self.last_move_gesture = move_gesture
+                        self.move_gesture_count = 1
+
+                    threshold = self.move_gesture_thresholds.get(move_gesture, 3)
+                    if self.move_gesture_count >= threshold:
+                        x, y, z, yaw = self.move_gesture_command[move_gesture]
+                        self.current_command = (x * self.speed, y * self.speed, z * self.speed, yaw)
+                        self.move_start_time = self.get_clock().now()
+                        self.move_duration = self.linear_move_duration  # Время для 5 м
+                        self.get_logger().info(f'Начато движение Pointer: {move_gesture}, длительность: {self.move_duration} сек')
+                    else:
+                        self.get_logger().debug(f'Ожидание подтверждения Pointer: {move_gesture}, счётчик: {self.move_gesture_count}/{threshold}')
 
             elif gesture in self.gesture_commands:
                 self.disarm_count = 0  # Сбрасываем счётчик Disarm
                 x, y, z, yaw = self.gesture_commands[gesture]
-                if gesture not in ['Up', 'Down']:
-                    z = 0.0
                 self.current_command = (x * self.speed, y * self.speed, z * self.speed, yaw)
                 twist = TwistStamped()
                 twist.header.stamp = self.get_clock().now().to_msg()
@@ -229,13 +297,17 @@ class GestureNode(Node):
                 twist.twist.linear.z = z * self.speed
                 twist.twist.angular.z = yaw
                 self.cmd_vel_pub.publish(twist)
-                self.get_logger().info(f' Команда: x={x}, y={y}, z={z}, yaw={yaw}')
+                self.get_logger().info(f'Команда: x={x}, y={y}, z={z}, yaw={yaw}')
+            
             else:
                 self.disarm_count = 0  # Сбрасываем счётчик Disarm
-                self.get_logger().debug('Жест не распознан или не предусмотрен')
-                self.current_command = (0.0, 0.0, 0.0, 0.0)
+                self.get_logger().debug(f'Жест не распознан или не предусмотрен: {gesture}, Move gesture: {move_gesture}')
+                self.current_command = (0.0, 0.0, 0.05, 0.0)  # z=0.05 для удержания высоты
+                self.last_move_gesture = None
+                self.move_gesture_count = 0
+
         except Exception as e:
-            self.get_logger().error(f' Ошибка обработки изображения: {e}')
+            self.get_logger().error(f'Ошибка обработки изображения: {e}')
 
     def destroy_node(self):
         self.classifier.release()
