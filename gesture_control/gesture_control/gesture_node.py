@@ -41,8 +41,10 @@ class GestureNode(Node):
         from app_for_ros2 import GestureClassifier
         self.classifier = GestureClassifier(self.cfg)
 
+        self.z_axis = 0.03
+
         self.bridge = CvBridge()
-        self.current_command = (0.0, 0.0, 0.05, 0.0)  # x, y, z, yaw; z=0.05 для удержания высоты
+        self.current_command = (0.0, 0.0, self.z_axis, 0.0)  # x, y, z, yaw; z=0.02 для удержания высоты
         self.current_state = State()
         self.offboard_attempts = 0
         self.max_offboard_attempts = 5
@@ -52,13 +54,14 @@ class GestureNode(Node):
         self.move_duration = 0.0  # Длительность движения в секундах
         self.last_move_gesture = None  # Последний распознанный move_gesture
         self.move_gesture_count = 0  # Счётчик последовательных распознаваний
+        self.is_landing = False  # Флаг для отслеживания процесса посадки
 
         # Пороги для LEFT и RIGHT
         self.move_gesture_thresholds = {
-            'LEFT': 5,
-            'RIGHT': 5,
-            'FORWORD': 5,
-            'BACKWORD': 5,
+            'LEFT': 2,
+            'RIGHT': 1,
+            'FORWORD': 1,
+            'BACKWORD': 1,
         }
 
         # Подписка на состояние дрона
@@ -139,6 +142,8 @@ class GestureNode(Node):
                 self.get_logger().info(f'✅ Режим {mode_name} установлен')
                 if mode_name == 'OFFBOARD':
                     self.offboard_attempts = 0  # Сбрасываем счётчик попыток
+                elif mode_name == 'AUTO.LAND':
+                    self.is_landing = True  # Устанавливаем флаг посадки
             else:
                 self.get_logger().warn(f'⚠️ Не удалось установить режим {mode_name}')
                 if mode_name == 'OFFBOARD' and self.offboard_attempts < self.max_offboard_attempts:
@@ -160,8 +165,12 @@ class GestureNode(Node):
         self.cmd_vel_pub.publish(twist)
         self.get_logger().debug(f'Команда отправлена: x={x}, y={y}, z={z}, yaw={yaw}')
 
-        # Проверяем, если дрон в режиме AUTO.LOITER после арминга
-        if self.current_state.armed and self.current_state.mode != 'OFFBOARD' and self.offboard_attempts < self.max_offboard_attempts:
+        # Проверяем необходимость переключения в OFFBOARD
+        if (self.current_state.armed and 
+            self.current_state.mode != 'OFFBOARD' and 
+            not self.is_landing and  # Не переключаем, если идёт посадка
+            self.offboard_attempts < self.max_offboard_attempts and
+            self.disarm_count < self.disarm_threshold):  # Не переключаем, если начат процесс дизарма
             self.get_logger().info(f'Дрон в режиме {self.current_state.mode}, попытка переключить в OFFBOARD')
             self.set_mode('OFFBOARD')
 
@@ -170,7 +179,7 @@ class GestureNode(Node):
             elapsed = (self.get_clock().now() - self.move_start_time).nanoseconds * 1e-9
             if elapsed >= self.move_duration:
                 self.get_logger().info('Движение Pointer завершено')
-                self.current_command = (0.0, 0.0, 0.05, 0.0)  # Возвращаемся к удержанию высоты
+                self.current_command = (0.0, 0.0, self.z_axis, 0.0)  # Возвращаемся к удержанию высоты
                 self.move_start_time = None
                 self.move_duration = 0.0
                 self.last_move_gesture = None
@@ -182,7 +191,7 @@ class GestureNode(Node):
             if result.success:
                 self.get_logger().info('🛩️ Arm успешен')
                 # Начинаем публиковать команды скорости для OFFBOARD
-                self.current_command = (0.0, 0.0, 0.05, 0.0)  # z=0.05 для удержания высоты
+                self.current_command = (0.0, 0.0, self.z_axis, 0.0)  
                 # Устанавливаем режим OFFBOARD
                 self.set_mode('OFFBOARD')
                 # Отправляем команду на взлёт
@@ -197,7 +206,8 @@ class GestureNode(Node):
             result = future.result()
             if result.success:
                 self.get_logger().info('🛬 Disarm успешен')
-                self.disarm_count = 0  # Сбрасываем счётчик
+                self.disarm_count = 0 
+                self.is_landing = False  # Сбрасываем флаг посадки
             else:
                 self.get_logger().warn(f'⚠️ Disarm отказ: result={result.result}')
         except Exception as e:
@@ -205,7 +215,7 @@ class GestureNode(Node):
 
     def send_takeoff_command(self):
         req = CommandTOL.Request()
-        req.altitude = 2.0  # Высота взлёта в метрах
+        req.altitude = 2.0  
         req.latitude = 0.0
         req.longitude = 0.0
         req.min_pitch = 0.0
@@ -239,7 +249,7 @@ class GestureNode(Node):
                 return
 
             if gesture == 'Arm':
-                self.disarm_count = 0  # Сбрасываем счётчик Disarm
+                self.disarm_count = 0  
                 req = CommandBool.Request()
                 req.value = True
                 future = self.arm_client.call_async(req)
@@ -249,21 +259,30 @@ class GestureNode(Node):
                 self.disarm_count += 1
                 self.get_logger().info(f'Обнаружен Disarm, счётчик: {self.disarm_count}/{self.disarm_threshold}')
                 if self.disarm_count >= self.disarm_threshold:
-                    req = CommandBool.Request()
-                    req.value = False
-                    future = self.arm_client.call_async(req)
-                    future.add_done_callback(self.disarm_response_cb)
+                    # Проверяем, находится ли дрон в режиме OFFBOARD или другом полётном режиме
+                    if self.current_state.mode in ['OFFBOARD', 'AUTO.LOITER', 'POSCTL']:
+                        self.get_logger().info('Дрон в полёте, переключаем в AUTO.LAND')
+                        self.set_mode('AUTO.LAND')
+                    elif self.current_state.mode == 'AUTO.LAND' and self.is_landing:
+                        # Если дрон уже в режиме посадки, ждём завершения
+                        self.get_logger().info('Дрон в процессе посадки, ожидаем завершения')
+                    else:
+                        # Предполагаем, что дрон на земле, выполняем дизарм
+                        req = CommandBool.Request()
+                        req.value = False
+                        future = self.arm_client.call_async(req)
+                        future.add_done_callback(self.disarm_response_cb)
                 else:
-                    self.current_command = (0.0, 0.0, 0.05, 0.0)  # z=0.05 для удержания высоты
+                    self.current_command = (0.0, 0.0, self.z_axis, 0.0) 
 
             elif gesture == 'Pointer' and move_gesture in self.move_gesture_command:
-                self.disarm_count = 0  # Сбрасываем счётчик Disarm
+                self.disarm_count = 0  
                 # Для FORWARD и BACKWARD движение начинается сразу
                 if move_gesture in ['FORWARD', 'BACKWARD']:
                     x, y, z, yaw = self.move_gesture_command[move_gesture]
                     self.current_command = (x * self.speed, y * self.speed, z * self.speed, yaw)
                     self.move_start_time = self.get_clock().now()
-                    self.move_duration = self.linear_move_duration  # Время для 5 м
+                    self.move_duration = self.linear_move_duration  
                     self.get_logger().info(f'Начато движение Pointer: {move_gesture}, длительность: {self.move_duration} сек')
                     self.last_move_gesture = None
                     self.move_gesture_count = 0
@@ -300,9 +319,9 @@ class GestureNode(Node):
                 self.get_logger().info(f'Команда: x={x}, y={y}, z={z}, yaw={yaw}')
             
             else:
-                self.disarm_count = 0  # Сбрасываем счётчик Disarm
+                self.disarm_count = 0 
                 self.get_logger().debug(f'Жест не распознан или не предусмотрен: {gesture}, Move gesture: {move_gesture}')
-                self.current_command = (0.0, 0.0, 0.05, 0.0)  # z=0.05 для удержания высоты
+                self.current_command = (0.0, 0.0, self.z_axis, 0.0)  
                 self.last_move_gesture = None
                 self.move_gesture_count = 0
 

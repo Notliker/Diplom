@@ -6,6 +6,8 @@
   <maintainer email="kira@todo.todo">kira</maintainer>
   <license>BSD</license>
 
+  <exec_depend>python3-mediapipe</exec_depend>
+  
   <depend>rclpy</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
