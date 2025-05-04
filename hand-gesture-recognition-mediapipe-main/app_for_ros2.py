@@ -53,6 +53,8 @@ class GestureClassifier:
         self.history_length = 16
         self.point_history = deque(maxlen=self.history_length)
         self.finger_gesture_history = deque(maxlen=self.history_length)
+        self.last_classified_gesture = None  # Хранит последний классифицированный динамический жест
+        self.is_gesture_classified = False  # Флаг, указывающий, классифицирован ли жест
         logger.info("GestureClassifier успешно инициализирован")
 
     def _load_labels(self, label_path):
@@ -121,7 +123,7 @@ class GestureClassifier:
         image_rgb.flags.writeable = True
 
         hand_sign_label = None
-        point_history_label = None
+        point_history_label = self.last_classified_gesture  # Используем последний классифицированный жест по умолчанию
 
         if results.multi_hand_landmarks:
             self.last_detect_time = now
@@ -133,31 +135,45 @@ class GestureClassifier:
             pre_processed_landmark_list = self._pre_process_landmark(landmark_list)
 
             hand_sign_id = self.keypoint_classifier(pre_processed_landmark_list)
-            if hand_sign_id == 2:  # Указательный палец
-                self.point_history.append(landmark_list[8])
-            else:
-                self.point_history.append([0, 0])
-
-            pre_processed_point_history_list = self._pre_process_point_history(processed_image, self.point_history)
-            if len(pre_processed_point_history_list) == self.history_length * 2:
-                finger_gesture_id = self.point_history_classifier(pre_processed_point_history_list)
-                self.finger_gesture_history.append(finger_gesture_id)
-                most_common_fg_id = Counter(self.finger_gesture_history).most_common(1)[0][0]
-                point_history_label = self.point_history_labels[most_common_fg_id]
-
             hand_sign_label = self.keypoint_labels[hand_sign_id]
+
+            if hand_sign_id == 2:  # Указательный палец
+                self.point_history.append(landmark_list[8])  # Добавляем координаты кончика указательного пальца
+                # Проверяем, не классифицирован ли жест ранее и достаточно ли точек
+                if not self.is_gesture_classified and len(self.point_history) == self.history_length:
+                    pre_processed_point_history_list = self._pre_process_point_history(processed_image, self.point_history)
+                    finger_gesture_id = self.point_history_classifier(pre_processed_point_history_list)
+                    self.finger_gesture_history.append(finger_gesture_id)
+                    most_common_fg_id = Counter(self.finger_gesture_history).most_common(1)[0][0]
+                    point_history_label = self.point_history_labels[most_common_fg_id]
+                    self.last_classified_gesture = point_history_label
+                    self.is_gesture_classified = True  
+                    logger.info(f"Динамический жест классифицирован: {point_history_label}")
+            else:
+                # Если статический жест изменился, сбрасываем историю и состояние
+                self.point_history.clear()
+                self.finger_gesture_history.clear()
+                self.is_gesture_classified = False
+                self.last_classified_gesture = None
 
         else:
             logger.debug("Руки не обнаружены")
-            self.point_history.append([0, 0])
+            # Если рука не обнаружена, сбрасываем историю и состояние
+            self.point_history.clear()
+            self.finger_gesture_history.clear()
+            self.is_gesture_classified = False
+            self.last_classified_gesture = None
 
             if now - self.last_detect_time > self.fallback_sec:
                 logger.info("Активирован SAHI fallback")
                 found, hand_sign_id, finger_gesture_id = self._sahi_fallback(image)
                 if found:
                     hand_sign_label = self.keypoint_labels[hand_sign_id]
-                    if finger_gesture_id is not None:
+                    if finger_gesture_id is not None and not self.is_gesture_classified:
                         point_history_label = self.point_history_labels[finger_gesture_id]
+                        self.last_classified_gesture = point_history_label
+                        self.is_gesture_classified = True
+                        logger.info(f"SAHI: Динамический жест классифицирован: {point_history_label}")
                     self.last_detect_time = now
 
         logger.info(f"Распознанные жесты - Поза: {hand_sign_label}, Движение пальца: {point_history_label}")
@@ -187,13 +203,10 @@ class GestureClassifier:
                     hand_sign_id = self.keypoint_classifier(pre_processed_landmark_list)
                     if hand_sign_id == 2:
                         self.point_history.append(landmark_list[8])
-                    else:
-                        self.point_history.append([0, 0])
-
-                    pre_processed_point_history_list = self._pre_process_point_history(tile, self.point_history)
-                    if len(pre_processed_point_history_list) == self.history_length * 2:
-                        finger_gesture_id = self.point_history_classifier(pre_processed_point_history_list)
-                        self.finger_gesture_history.append(finger_gesture_id)
+                        if len(self.point_history) == self.history_length and not self.is_gesture_classified:
+                            pre_processed_point_history_list = self._pre_process_point_history(tile, self.point_history)
+                            finger_gesture_id = self.point_history_classifier(pre_processed_point_history_list)
+                            self.finger_gesture_history.append(finger_gesture_id)
                     break
             if found:
                 break
