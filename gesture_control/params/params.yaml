@@ -19,3 +19,4 @@ gesture_classifier:
     cmd_vel_output: "/mavros/setpoint_velocity/cmd_vel"
     arming_srv: "/mavros/cmd/arming"
   speed: 0.5
+  
